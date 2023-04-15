@@ -2,12 +2,25 @@ body {
     margin: 0;
     padding: 0;
 }
+
 .cell {
     display: inline-block;
     padding: 10px 5px 10px 1px;
     width: 100px;
     border: 1px dotted grey;
-    height: 20px
+    height: 20px;
+    margin-left: 1px;
+    font-family: monospace;
+}
+
+input:focus {
+    outline: none;
+    border: 2px solid #0087ff
+}
+
+input.cell:focus {
+    width: 98px;
+    height: 18px;
 }
 
 .row-marker {
@@ -39,10 +52,4 @@ body {
     color: #3548e8;
     font-family: monospace;
     background-color: #97f2d4;
-}
-.row {
-
-}
-
-.sheet {
 }
