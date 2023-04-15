@@ -1,0 +1,8 @@
+;; shadow-cljs configuration
+{:source-paths ["src/"]
+ :dev-http     {8080 {:root "public"}}
+ :dependencies [[org.babashka/sci "0.7.39"]]
+ :builds       {:app {:output-dir "public/assets/js"
+                      :asset-path "assets/js"
+                      :target     :browser
+                      :modules    {:main {:init-fn germ.core/init}}}}}

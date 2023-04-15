@@ -1,5 +1,4 @@
 node_modules/
-public/js
 
 /target
 /checkouts
@@ -18,5 +17,6 @@ pom.xml.asc
 
 .hgignore
 .hg/
-public/assets/cljs-runtime/
 public/assets/js/main.js
+public/assets/js/cljs-runtime/
+public/assets/js/manifest.edn
