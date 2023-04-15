@@ -119,7 +119,7 @@
   (cond
     (re-find #"^\d+$" cell-value-str) cell-value-str
     (re-find ref-regex cell-value-str) cell-value-str
-    (= (first cell-value-str) "(") cell-value-str
+    (contains? #{"\"" "#" "'" "(" "[" "{"} (first cell-value-str)) cell-value-str
     :else (str "\"" cell-value-str "\"")))
 
 (defn evaluate-cell
