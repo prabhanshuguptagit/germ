@@ -9,6 +9,17 @@
   ([rows cols default-value]
    (vec (repeat rows (vec (repeat cols default-value))))))
 
+(def init-grid
+  (atom (empty-grid 40 10))
+  #_(atom
+   [['(inc B3) 2                '(inc A1)]
+    [4         '(map inc A1:A3)  6]
+    [7         8                 9]]))
+
+(defn column-number-to-reference [n]
+  ;; this only does columns A to Z rn, should make it work for AA etc
+  (char (+ 65 n)))
+
 ;; (def grid (empty-grid 10 10 1))
 
 (defn set-cell
@@ -23,8 +34,8 @@
   [ref]
   ;; returns [x y]
   (let [[_ col row] (re-matches #"([A-Z]+)([0-9]+)" ref)
-        col-index (reduce (fn [acc c] (+ (* 26 acc) (- (.charCodeAt c) 64))) 0 col)]
-    [(dec (js/parseInt row)) (dec col-index)]))
+        col-index (dec (reduce (fn [acc c] (+ (* 26 acc) (- (.charCodeAt c) 64))) 0 col))]
+    [(dec (js/parseInt row)) col-index]))
 
 (defn sub-grid-by-spaces
   [])
@@ -64,10 +75,6 @@
   [[1 2 3]
    [4 5 6]
    [7 8 9]])
-(def grid
-  [['(inc B3) 2                '(inc A1)]
-   [4         '(map inc A1:A3)  6]
-   [7         8                 9]])
 
 (def grid-2
   [['(inc C3) '(mapv inc A1:A3) nil]
@@ -88,20 +95,6 @@
 
 (def ref-regex #"[A-Z]+[0-9]+:[A-Z]+[0-9]+|[A-Z]+[0-9]+")
 
-;; (defmacro replace-refs-with-values [grid expr]
-;;   (cond
-;;     (list? expr) (quote `(map (fn [x]
-;;                                (if (re-matches ref-regex (str x)) 
-;;                                  (resolve-ref [[1 2 3]
-;;                                                [4 5 6]
-;;                                                [7 8 9]] (str x))
-;;                                  x)) ~expr))
-;;     (re-matches ref-regex (str expr)) (resolve-ref grid expr)
-;;     :else (do
-;;             (println "dwdwedioh")
-;;             expr)))
-
-
 ;; todo: could do a macro
 ;; - read-string happens before substitution, nice place to catch errors
 ;; - don't have to string replace
@@ -115,7 +108,7 @@
 
 (defn evaluate-cell
   [grid cell-value]
-  (if-not (nil? cell-value)
+  (when-not (nil? cell-value)
     (sci/eval-string
      (replace-refs-with-values grid cell-value))))
 
@@ -127,7 +120,7 @@
 
 (defn evaluate-grid
   [grid]
-  (map (fn [row] (map #(evaluate-cell grid %) row)) grid))
+  (mapv (fn [row] (mapv #(evaluate-cell grid %) row)) grid))
 
 (defn spill
   [grid])
@@ -148,16 +141,57 @@
             ""
             formatted-grid)))
 
+(defn html
+  [grid]
+  (str
+   "<div class='sheet'>"
+   "<div class='small-row-marker'>❤️</div>"
+   (apply str (map-indexed (fn [col-index _]
+                             (str "<div class='col-marker'>" (column-number-to-reference col-index) "</div>"))
+                           (first grid)))
+       (str
+        (apply str (map-indexed
+                    (fn [row-index row]
+                      (str
+                       "<div class='row'>"
+                       "<div class='row-marker'>"
+                       (inc row-index)
+                       "</div>"
+                       (apply str (map-indexed
+                                   (fn [col-index cell]
+                                     (str "<input data-row-index=" row-index
+                                          " data-col-index=" col-index
+                                          " class='cell' type='text' value="
+                                          "'" (str cell) "'"
+                                          "onkeydown='germ.core.update_cell(event)'"
+                                          ">"))
+                                   row))
+                       "</div>"))
+                    grid))
+        "</div>")))
+
 ;; recalculating first the cells with no inputs
 ;; then recalculating any cell whose inputs are ready
 (defn ^:dev/after-load init []
   (set! (.-innerHTML (.getElementById js/document "root")) 
-        (str 
+        (html (evaluate-grid @init-grid))
+        #_(str 
          "original grid"
          "<br>"
-         (print-grid grid)
+         (print-grid @init-grid)
          "<br>"
          "calculated grid"
              "<br>"
-             (print-grid (evaluate-grid grid)))))
+             (print-grid (evaluate-grid @init-grid)))))
 
+(defn update-cell
+  [event]
+  (when (contains? #{"Tab" "Enter"} (.-key event))
+    (.preventDefault event)
+    (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
+          col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))
+          value (.-value (.-target event))]
+      (reset! init-grid (set-cell @init-grid row-index col-index (sci/eval-string (replace-refs-with-values
+                                                                                   @init-grid
+                                                                                   value))))
+      (init))))

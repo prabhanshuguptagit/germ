@@ -1,0 +1,49 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+.cell {
+    display: inline-block;
+    padding: 10px 5px 10px 1px;
+    width: 100px;
+    border: 1px dotted grey;
+    height: 20px
+}
+
+.row-marker {
+    display: inline-block;
+    width: 20px;
+    padding: 10px 5px 9px 1px;
+    height: 22px;
+    color: #3548e8;
+    font-family: monospace;
+    background-color: #97f2d4;
+}
+
+.small-row-marker {
+    display: inline-block;
+    width: 20px;
+    padding: 10px 5px 9px 1px;
+    height: 20px;
+    color: #3548e8;
+    font-family: monospace;
+    background-color: #97f2d4;
+}
+
+.col-marker {
+    display: inline-block;
+    width: 102px;
+    text-align: center;
+    padding: 10px 5px 9px 1px;
+    height: 20px;
+    color: #3548e8;
+    font-family: monospace;
+    background-color: #97f2d4;
+}
+.row {
+
+}
+
+.sheet {
+    padding-left: 10px;
+}
