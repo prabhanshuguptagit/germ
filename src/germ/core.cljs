@@ -12,9 +12,9 @@
 (defonce init-grid
   (atom (empty-grid 40 10))
   #_(atom
-   [['(inc B3) 2                '(inc A1)]
-    [4         '(map inc A1:A3)  6]
-    [7         8                 9]]))
+     [['(inc B3) 2                '(inc A1)]
+      [4         '(map inc A1:A3)  6]
+      [7         8                 9]]))
 
 (defn column-number-to-reference [n]
   ;; this only does columns A to Z rn, should make it work for AA etc
@@ -59,7 +59,7 @@
   (let [single-cell-regex #"[A-Z]+[0-9]+"
         range-regex #"[A-Z]+[0-9]+:[A-Z]+[0-9]+"
         auto-expand-regex #"[A-Z]+[0-9]+::"]
-    (cond 
+    (cond
       (re-matches single-cell-regex ref)
       (let [[row col] (cell-coords ref)]
         (evaluate-cell grid (get-cell grid row col)))
@@ -98,8 +98,8 @@
 (test/is (= (eval-ref dummy-grid "A1:B2") [[1 2] [4 5]]))
 (test/is (= (eval-ref dummy-grid "B2:C3") [[5 6] [8 9]]))
 (test/is (= (eval-ref dummy-grid "A1:C3") [[1 2 3]
-                                              [4 5 6]
-                                              [7 8 9]]))
+                                           [4 5 6]
+                                           [7 8 9]]))
 
 (def ref-regex #"[A-Z]+[0-9]+:[A-Z]+[0-9]+|[A-Z]+[0-9]+")
 
@@ -152,10 +152,10 @@
                                    spaces (- cell-size (count cell-str))]
                                (str  " | " cell-str (apply str (repeat spaces " ")))))
                            row)) grid)]
-    (reduce 
+    (reduce
      (fn [acc row] (str (str acc (clojure.string/join row) " | ") "<br>"))
-            ""
-            formatted-grid)))
+     ""
+     formatted-grid)))
 
 (defn html
   [grid]
@@ -165,26 +165,26 @@
    (apply str (map-indexed (fn [col-index _]
                              (str "<div class='col-marker'>" (column-number-to-reference col-index) "</div>"))
                            (first grid)))
-       (str
-        (apply str (map-indexed
-                    (fn [row-index row]
-                      (str
-                       "<div class='row'>"
-                       "<div class='row-marker'>"
-                       (inc row-index)
-                       "</div>"
-                       (apply str (map-indexed
-                                   (fn [col-index cell]
-                                     (str "<input data-row-index=" row-index
-                                          " data-col-index=" col-index
-                                          " class='cell' type='text' value="
-                                          "'" (str cell) "'"
-                                          "onkeydown='germ.core.update_cell(event)'"
-                                          ">"))
-                                   row))
-                       "</div>"))
-                    grid))
-        "</div>")))
+   (str
+    (apply str (map-indexed
+                (fn [row-index row]
+                  (str
+                   "<div class='row'>"
+                   "<div class='row-marker'>"
+                   (inc row-index)
+                   "</div>"
+                   (apply str (map-indexed
+                               (fn [col-index cell]
+                                 (str "<input data-row-index=" row-index
+                                      " data-col-index=" col-index
+                                      " class='cell' type='text' value="
+                                      "'" (str cell) "'"
+                                      "onkeydown='germ.core.handle_cell_input(event)'"
+                                      ">"))
+                               row))
+                   "</div>"))
+                grid))
+    "</div>")))
 
 ;; recalculating first the cells with no inputs
 ;; then recalculating any cell whose inputs are ready
@@ -194,22 +194,15 @@
    (set! (.-innerHTML (.getElementById js/document "root"))
          (html (evaluate-grid @init-grid)))
    (when-let [next-input (js/document.querySelector
-                      (str "[data-row-index='" focus-row-index  "'][data-col-index='" focus-col-index "']"))]
+                          (str "[data-row-index='" focus-row-index  "'][data-col-index='" focus-col-index "']"))]
      (.focus next-input))))
-  #_(str
-     "original grid"
-     "<br>"
-     (print-grid @init-grid)
-     "<br>"
-     "calculated grid"
-     "<br>"
-     (print-grid (evaluate-grid @init-grid)))
 
-(defn update-cell
+
+(defn handle-cell-input
   [event]
 
   (when (= "Escape" (.-key event))
-        (.blur (.-target event)))
+    (.blur (.-target event)))
 
   (when (contains? #{"ArrowUp" "ArrowDown"} (.-key event))
     (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
