@@ -9,7 +9,7 @@
   ([rows cols default-value]
    (vec (repeat rows (vec (repeat cols default-value))))))
 
-(def init-grid
+(defonce init-grid
   (atom (empty-grid 40 10))
   #_(atom
    [['(inc B3) 2                '(inc A1)]
@@ -51,6 +51,9 @@
 (defn take-while-not-nil [coll]
   (take-while identity coll))
 
+(declare evaluate-cell)
+(declare evaluate-grid)
+
 (defn resolve-ref
   [grid ref]
   (let [single-cell-regex #"[A-Z]+[0-9]+"
@@ -59,11 +62,16 @@
     (cond 
       (re-matches single-cell-regex ref)
       (let [[row col] (cell-coords ref)]
-        (get-cell grid row col))
+        (evaluate-cell grid (get-cell grid row col)))
 
       (re-matches range-regex ref)
-      (let [[start end] (map cell-coords (re-seq single-cell-regex ref))]
-        (sub-grid grid start end))
+      (let [[start end] (map cell-coords (re-seq single-cell-regex ref))
+            result (sub-grid grid start end)]
+        (cond
+          (vector? (first result))
+          (evaluate-grid result)
+          :else
+          (mapv #(evaluate-cell grid %) result)))
 
       ;; (re-matches auto-expand-regex ref)
       ;; (let [[start] (cell-coords (re-matches single-cell-regex ref))
@@ -191,7 +199,5 @@
     (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
           col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))
           value (.-value (.-target event))]
-      (reset! init-grid (set-cell @init-grid row-index col-index (sci/eval-string (replace-refs-with-values
-                                                                                   @init-grid
-                                                                                   value))))
+      (reset! init-grid (set-cell @init-grid row-index col-index value))
       (init))))
