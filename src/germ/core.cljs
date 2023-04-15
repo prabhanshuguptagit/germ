@@ -188,24 +188,45 @@
 
 ;; recalculating first the cells with no inputs
 ;; then recalculating any cell whose inputs are ready
-(defn ^:dev/after-load init []
-  (set! (.-innerHTML (.getElementById js/document "root")) 
-        (html (evaluate-grid @init-grid))
-        #_(str 
-         "original grid"
-         "<br>"
-         (print-grid @init-grid)
-         "<br>"
-         "calculated grid"
-             "<br>"
-             (print-grid (evaluate-grid @init-grid)))))
+(defn ^:dev/after-load init
+  ([] (init 0 0))
+  ([focus-row-index focus-col-index]
+   (set! (.-innerHTML (.getElementById js/document "root"))
+         (html (evaluate-grid @init-grid)))
+   (when-let [next-input (js/document.querySelector
+                      (str "[data-row-index='" focus-row-index  "'][data-col-index='" focus-col-index "']"))]
+     (.focus next-input))))
+  #_(str
+     "original grid"
+     "<br>"
+     (print-grid @init-grid)
+     "<br>"
+     "calculated grid"
+     "<br>"
+     (print-grid (evaluate-grid @init-grid)))
 
 (defn update-cell
   [event]
+
+  (when (= "Escape" (.-key event))
+        (.blur (.-target event)))
+
+  (when (contains? #{"ArrowUp" "ArrowDown"} (.-key event))
+    (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
+          col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))]
+      (case (.-key event)
+        "ArrowUp" (init (max 0 (dec row-index)) col-index)
+        "ArrowDown" (init (inc row-index) col-index))))
+
   (when (contains? #{"Tab" "Enter"} (.-key event))
     (.preventDefault event)
     (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
           col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))
           value (.-value (.-target event))]
       (reset! init-grid (set-cell @init-grid row-index col-index value))
-      (init))))
+      (if
+       (= (.-key event) "Tab")
+        (if (.-shiftKey event)
+          (init row-index (max 0 (dec col-index)))
+          (init row-index (inc col-index)))
+        (init (inc row-index) col-index)))))
