@@ -54,7 +54,7 @@
 (declare evaluate-cell)
 (declare evaluate-grid)
 
-(defn resolve-ref
+(defn eval-ref
   [grid ref]
   (let [single-cell-regex #"[A-Z]+[0-9]+"
         range-regex #"[A-Z]+[0-9]+:[A-Z]+[0-9]+"
@@ -89,15 +89,15 @@
    [4         nil              nil]
    [7         nil              8]])
 
-(test/is (= (resolve-ref dummy-grid "A1") 1))
-(test/is (= (resolve-ref dummy-grid "B3") 8))
-(test/is (= (resolve-ref dummy-grid "A1:A2") [1 4]))
-(test/is (= (resolve-ref dummy-grid "A1:A1") [1]))
-(test/is (= (resolve-ref dummy-grid "A1:B1") [[1 2]]))
-(test/is (= (resolve-ref dummy-grid "A1:C1") [[1 2 3]]))
-(test/is (= (resolve-ref dummy-grid "A1:B2") [[1 2] [4 5]]))
-(test/is (= (resolve-ref dummy-grid "B2:C3") [[5 6] [8 9]]))
-(test/is (= (resolve-ref dummy-grid "A1:C3") [[1 2 3]
+(test/is (= (eval-ref dummy-grid "A1") 1))
+(test/is (= (eval-ref dummy-grid "B3") 8))
+(test/is (= (eval-ref dummy-grid "A1:A2") [1 4]))
+(test/is (= (eval-ref dummy-grid "A1:A1") [1]))
+(test/is (= (eval-ref dummy-grid "A1:B1") [[1 2]]))
+(test/is (= (eval-ref dummy-grid "A1:C1") [[1 2 3]]))
+(test/is (= (eval-ref dummy-grid "A1:B2") [[1 2] [4 5]]))
+(test/is (= (eval-ref dummy-grid "B2:C3") [[5 6] [8 9]]))
+(test/is (= (eval-ref dummy-grid "A1:C3") [[1 2 3]
                                               [4 5 6]
                                               [7 8 9]]))
 
@@ -109,7 +109,7 @@
 (defn replace-refs-with-values
   [grid expr]
   (let [replaced-expr
-        (clojure.string/replace (str expr) ref-regex #(str (resolve-ref grid %1)))]
+        (clojure.string/replace (str expr) ref-regex #(str (eval-ref grid %1)))]
     (if (re-find ref-regex (str replaced-expr))
       (replace-refs-with-values grid replaced-expr)
       replaced-expr)))
