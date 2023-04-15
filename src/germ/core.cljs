@@ -80,9 +80,9 @@
       )))
 
 (def dummy-grid
-  [[1 2 3]
-   [4 5 6]
-   [7 8 9]])
+  [["1" "2" "3"]
+   ["4" "5" "6"]
+   ["7" "8" "9"]])
 
 (def grid-2
   [['(inc C3) '(mapv inc A1:A3) nil]
@@ -114,11 +114,19 @@
       (replace-refs-with-values grid replaced-expr)
       replaced-expr)))
 
+(defn normalize-cell-value
+  [cell-value-str]
+  (cond
+    (re-find #"^\d+$" cell-value-str) cell-value-str
+    (re-find ref-regex cell-value-str) cell-value-str
+    (= (first cell-value-str) "(") cell-value-str
+    :else (str "\"" cell-value-str "\"")))
+
 (defn evaluate-cell
   [grid cell-value]
   (when-not (nil? cell-value)
     (sci/eval-string
-     (replace-refs-with-values grid cell-value))))
+     (replace-refs-with-values grid (normalize-cell-value cell-value)))))
 
 (defn spill-cells
   [grid]
