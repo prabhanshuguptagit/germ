@@ -76,12 +76,6 @@
           :else
           (mapv #(evaluate-cell grid %) result))))))
 
-      ;; (re-matches auto-expand-regex ref)
-      ;; (let [[start] (cell-coords (re-matches single-cell-regex ref))
-      ;;       [start-row start-col] start]
-      ;;   (sub-grid grid start end))
-      
-
 (def dummy-grid
   [["1" "2" "3"]
    ["4" "5" "6"]
@@ -147,7 +141,7 @@
   [grid])
   ;; is iseq, map do |cell_value| 
   ;; if cell_value is iseq spill-row over each column
-  
+
 
 (defn evaluate-grid
   [grid]
