@@ -74,13 +74,13 @@
           (vector? (first result))
           (evaluate-grid result)
           :else
-          (mapv #(evaluate-cell grid %) result)))
+          (mapv #(evaluate-cell grid %) result))))))
 
       ;; (re-matches auto-expand-regex ref)
       ;; (let [[start] (cell-coords (re-matches single-cell-regex ref))
       ;;       [start-row start-col] start]
       ;;   (sub-grid grid start end))
-      )))
+      
 
 (def dummy-grid
   [["1" "2" "3"]
@@ -112,16 +112,27 @@
 (defn replace-refs-with-values
   [grid expr]
   (let [replaced-expr
-        (clojure.string/replace (str expr) ref-regex #(str (eval-ref grid %1)))]
-    (if (re-find ref-regex (str replaced-expr))
+        (clojure.string/replace (str expr)
+                                ref-regex
+                                #(let [evaled-ref (eval-ref grid %1)]
+                                   (if (string? evaled-ref)
+                                    ;; hack for raw strings in cells.
+                                    ;; if we evaluate a cell that returns a raw string,
+                                    ;; its wrapped in additional string quotes so that
+                                    ;; it's not eval-ed as a symbol.
+                                    ;; This belongs somewhere else probably, in evaluate-cell
+                                    ;; or eval-ref
+                                     (str "\"" evaled-ref "\"")
+                                     (str evaled-ref))))]
+    (if (re-find ref-regex replaced-expr)
       (replace-refs-with-values grid replaced-expr)
       replaced-expr)))
 
 (defn normalize-cell-value
   [cell-value-str]
   (cond
-    (re-find #"^\d+$" cell-value-str) cell-value-str
-    (re-find ref-regex cell-value-str) cell-value-str
+    (re-matches #"^\d+$" cell-value-str) cell-value-str
+    (re-matches ref-regex cell-value-str) cell-value-str
     (contains? #{"\"" "#" "'" "(" "[" "{"} (first cell-value-str)) cell-value-str
     :else (str "\"" cell-value-str "\"")))
 
@@ -133,10 +144,10 @@
      (replace-refs-with-values grid (normalize-cell-value cell-value)))))
 
 (defn spill-cells
-  [grid]
+  [grid])
   ;; is iseq, map do |cell_value| 
   ;; if cell_value is iseq spill-row over each column
-  )
+  
 
 (defn evaluate-grid
   [grid]
