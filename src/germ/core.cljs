@@ -3,6 +3,9 @@
             [clojure.string]
             [clojure.test :as test]))
 
+(def sci-opts {:namespaces {'clojure.string {'split clojure.string/split}}})
+(def sci-ctx (sci/init sci-opts))
+
 (defn empty-grid
   ([rows cols]
    (empty-grid rows cols nil))
@@ -125,7 +128,8 @@
 (defn evaluate-cell
   [grid cell-value]
   (when-not (nil? cell-value)
-    (sci/eval-string
+    (sci/eval-string*
+     sci-ctx
      (replace-refs-with-values grid (normalize-cell-value cell-value)))))
 
 (defn spill-cells
