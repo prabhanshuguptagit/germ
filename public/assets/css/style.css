@@ -1,6 +1,13 @@
+@font-face {
+    font-family: baskerville;
+    src: url("LibreBaskerville-Regular.ttf");
+}
+
 body {
     margin: 0;
     padding: 0;
+    font-family: baskerville;
+    background-color: #fdf6e2;
 }
 
 .cell {
@@ -10,12 +17,14 @@ body {
     border: 1px dotted grey;
     height: 20px;
     margin-left: 1px;
-    font-family: monospace;
+    font-size: 15px;
+    font-family: baskerville;
+    background-color: #f8f1c0;
 }
 
 input:focus {
     outline: none;
-    border: 2px solid #0087ff
+    border: 2px solid black;
 }
 
 input.cell:focus {
@@ -28,9 +37,8 @@ input.cell:focus {
     width: 20px;
     padding: 10px 5px 9px 5px;
     height: 22px;
-    color: #3548e8;
-    font-family: monospace;
-    background-color: #97f2d4;
+    color: black;
+    border-right: 1px solid black;
 }
 
 .small-row-marker {
@@ -38,18 +46,19 @@ input.cell:focus {
     width: 20px;
     padding: 10px 5px 9px 5px;
     height: 20px;
-    color: #3548e8;
+    color: black;
     font-family: monospace;
-    background-color: #97f2d4;
+    font-size: 15px;
+    border-right: 1px solid black;
 }
 
 .col-marker {
     display: inline-block;
-    width: 102px;
+    width: 103px;
     text-align: center;
     padding: 10px 5px 9px 1px;
     height: 20px;
-    color: #3548e8;
-    font-family: monospace;
-    background-color: #97f2d4;
+    color: black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
 }
