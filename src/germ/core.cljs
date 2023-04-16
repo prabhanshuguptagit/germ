@@ -13,7 +13,7 @@
    (vec (repeat rows (vec (repeat cols default-value))))))
 
 (defonce init-grid
-  (atom (empty-grid 40 10))
+  (atom (empty-grid 40 20))
   #_(atom
      [['(inc B3) 2                '(inc A1)]
       [4         '(map inc A1:A3)  6]
