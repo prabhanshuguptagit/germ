@@ -161,7 +161,7 @@
   [grid]
   (str
    "<div class='sheet'>"
-   "<div class='small-row-marker'>❤️</div>"
+   "<div class='small-row-marker'>🦠</div>"
    (apply str (map-indexed (fn [col-index _]
                              (str "<div class='col-marker'>" (column-number-to-reference col-index) "</div>"))
                            (first grid)))
