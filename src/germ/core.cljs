@@ -13,12 +13,17 @@
    (vec (repeat rows (vec (repeat cols default-value))))))
 
 (defonce init-grid
-  (atom (empty-grid 40 20))
-  #_(atom
-     [['(inc B3) 2                '(inc A1)]
-      [4         '(map inc A1:A3)  6]
-      [7         8                 9]]))
+  (atom (empty-grid 40 20)))
 
+(defonce calculated-grid
+  (atom @init-grid))
+
+#_(atom
+   [['(inc B3) 2                '(inc A1)]
+    [4         '(map inc A1:A3)  6]
+    [7         8                 9]])
+
+  
 (defn column-number-to-reference [n]
   ;; this only does columns A to Z rn, should make it work for AA etc
   (char (+ 65 n)))
@@ -189,6 +194,8 @@
                                       " class='cell' type='text' value="
                                       "'" (str cell) "'"
                                       "onkeydown='germ.core.handle_cell_input(event)'"
+                                      "onfocus='germ.core.show_cell_raw_value(event)'"
+                                      "onfocusout='germ.core.show_cell_calculated_value(event)'"
                                       ">"))
                                row))
                    "</div>"))
@@ -200,8 +207,9 @@
 (defn ^:dev/after-load init
   ([] (init 0 0))
   ([focus-row-index focus-col-index]
+   (reset! calculated-grid (evaluate-grid @init-grid))
    (set! (.-innerHTML (.getElementById js/document "root"))
-         (html (evaluate-grid @init-grid)))
+         (html @calculated-grid))
    (when-let [next-input (js/document.querySelector
                           (str "[data-row-index='" focus-row-index  "'][data-col-index='" focus-col-index "']"))]
      (.focus next-input))))
@@ -226,9 +234,20 @@
           col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))
           value (.-value (.-target event))]
       (reset! init-grid (set-cell @init-grid row-index col-index value))
-      (if
-       (= (.-key event) "Tab")
+      (if (= (.-key event) "Tab")
         (if (.-shiftKey event)
           (init row-index (max 0 (dec col-index)))
           (init row-index (inc col-index)))
         (init (inc row-index) col-index)))))
+
+(defn show-cell-raw-value
+  [event]
+  (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
+        col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))]
+    (set! (.. event -target -value) (get-in @init-grid [row-index col-index]))))
+
+(defn show-cell-calculated-value
+  [event]
+  (let [row-index (js/parseInt (aget (.-dataset (.-target event)) "rowIndex"))
+        col-index (js/parseInt (aget (.-dataset (.-target event)) "colIndex"))]
+    (set! (.. event -target -value) (get-in @calculated-grid [row-index col-index]))))
