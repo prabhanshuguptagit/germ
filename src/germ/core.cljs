@@ -139,21 +139,68 @@
   [grid cell-value]
   (when-not (nil? cell-value)
     (sci/eval-string*
-     sci-ctx
-     (replace-refs-with-values grid (normalize-cell-value cell-value)))))
+      sci-ctx
+      (replace-refs-with-values grid (normalize-cell-value cell-value)))))
 
-(defn spill-cells
-  [grid])
-  ;; is iseq, map do |cell_value| 
-  ;; if cell_value is iseq spill-row over each column
+(defn formulas [grid]
+  (->> grid
+       (map-indexed (fn [row-index row]
+                      (map-indexed (fn [column-index cell]
+                                     [[row-index column-index]
+                                      ((fnil re-matches ref-regex "") ref-regex cell)])
+                                   row)))
+       (apply concat)
+       (remove (comp nil? second))
+       (into {})))
 
+(defn num-rows [grid]
+  (count grid))
+
+(defn num-cols [grid]
+  (count (first grid)))
+
+(defn all-cell-coordinates [grid]
+  (for [x (range (num-rows grid))
+        y (range (num-cols grid))]
+    [x y]))
+
+(defn spill-sequence
+  [grid coordinates sequence-value]
+  (->> (map vector
+            (repeat coordinates)
+            (range (count sequence-value)))
+       (map (fn [[coord thing-to-add]]
+              [(+ thing-to-add (first coord))
+               (second coord)]))
+       (map vector sequence-value)
+       (reduce (fn [new-grid [cell-value coords]]
+                 (assoc-in new-grid coords (str cell-value)))
+               grid)))
+
+(defn spill-all-sequences [grid]
+  (reduce (fn [the-grid [row col]]
+            (if (sequential? (get-cell the-grid row col))
+              (spill-sequence the-grid [row col] (get-cell the-grid row col))
+              the-grid))
+          grid
+          (all-cell-coordinates grid)))
+
+(defn apply-formulas [grid formulas]
+  (->> (reduce (fn [the-grid [cell-coordinate formula-string]]
+                 (assoc-in the-grid cell-coordinate (evaluate-cell grid formula-string)))
+               grid
+               formulas)
+       (spill-all-sequences)))
+
+(defn converge-formulas [grid formulas]
+  (let [new-grid (apply-formulas grid formulas)]
+    (if (= grid new-grid)
+      new-grid
+      (recur new-grid formulas))))
 
 (defn evaluate-grid
   [grid]
   (mapv (fn [row] (mapv #(evaluate-cell grid %) row)) grid))
-
-(defn spill
-  [grid])
 
 (defn print-grid
   [grid]
