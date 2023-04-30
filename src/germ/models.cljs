@@ -112,7 +112,7 @@
 
 (defn set-cell-val
   [workbook sheet-id row col val]
-  (set-cell workbook sheet-id row col (new-cell {:val val})))
+  (set-cell-properties workbook sheet-id row col {:val (str val)}))
 
 (defn get-cell
   [workbook sheet-id row col]
@@ -133,8 +133,7 @@
   [workbook]
   (->> workbook
        :cells-index
-    ;;    remove str from here
-       (filter (fn [[_ cell]] (re-matches ref-regex (str (:val cell)))))
+       (filter (fn [[_ cell]] (re-matches ref-regex (:val cell))))
        vals))
 
 (test/is (= (cells-with-refs (set-cell-val (new-workbook "sheet1" 3 3) "sheet1" 1 1 "A1"))
