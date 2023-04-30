@@ -44,6 +44,10 @@
 ;;    (.toString 16)
 ;;    (.slice 2)))
 
+(defn column-number->reference [n]
+  ;; this only does columns A to Z rn, should make it work for AA etc
+  (char (+ 65 n)))
+
 (defn new-cell
   [{:keys [val loc sheet-id]
     :or {val      nil
