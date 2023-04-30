@@ -81,7 +81,7 @@
   [workbook sheet]
   (assoc-in workbook [:sheets-index (:id sheet)] sheet))
 
-(defn new-workbook 
+(defn new-workbook
   [default-sheet-id default-rows default-cols]
   (add-sheet-to-workbook 
    {:sheets-index {}
@@ -93,14 +93,18 @@
   [sheet-id row col]
   [sheet-id (coordinate row col)])
 
-(defn set-cell
-  [workbook sheet-id row col cell]
+(defn set-cell-properties
+  [workbook sheet-id row col properties]
   ;; todo: shouldn't be able to set a cell outside the sheet's bounds
-  (let [the-coordinate (coordinate row col)]
+  (let [cell-index (cells-index-key sheet-id row col)
+        existing-cell (get-in workbook [:cells-index cell-index])]
     (assoc-in workbook
               [:cells-index (cells-index-key sheet-id row col)]
-              (merge cell {:loc the-coordinate
-                           :sheet-id sheet-id}))))
+              (if existing-cell
+                (merge existing-cell properties)
+                (merge (new-cell {:loc (coordinate row col)
+                                  :sheet-id sheet-id})
+                       properties)))))
 
 (defn set-cell-val
   [workbook sheet-id row col val]
